@@ -7,6 +7,7 @@
 body{font-family:sans-serif; background:#071022; color:#e6eef8; padding:20px;}
 input, select, button{padding:6px; margin:4px; border-radius:4px;}
 pre{background:#031223; padding:12px; border-radius:8px; overflow:auto;}
+.highlight{color:#2dd4bf;font-weight:700;}
 </style>
 </head>
 <body>
@@ -14,7 +15,7 @@ pre{background:#031223; padding:12px; border-radius:8px; overflow:auto;}
 <h1>XAUUSD Analyzer AI</h1>
 
 <label>Harga Spot (USD/oz)</label>
-<input type="number" id="price" value="3620.00">
+<input type="number" id="price" value="3620">
 
 <label>Volatilitas</label>
 <input type="number" id="vol" value="30">
@@ -34,7 +35,7 @@ pre{background:#031223; padding:12px; border-radius:8px; overflow:auto;}
 
 <button id="gen">Generate AI Analysis</button>
 
-<h3>Hasil:</h3>
+<h3>Hasil AI:</h3>
 <pre id="output">{}</pre>
 
 <script>
@@ -55,8 +56,15 @@ document.getElementById("gen").addEventListener("click", async () => {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(payload)
     });
+
     const data = await res.json();
-    output.textContent = JSON.stringify(data, null, 2);
+
+    if(data.result.ai_output) {
+      output.textContent = data.result.ai_output;
+    } else {
+      output.textContent = JSON.stringify(data.result, null, 2);
+    }
+
   } catch(err) {
     output.textContent = `Error: ${err.message}`;
   }
