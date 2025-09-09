@@ -7,6 +7,7 @@ export default async function handler(req, res) {
   const { price, volatility, rrStrategy, mode } = req.body;
   if(!price) return res.status(400).json({ error: "Price required" });
 
+  // Prompt ketat supaya AI selalu mengembalikan JSON
   const prompt = `
 Analisa XAUUSD:
 - Harga Spot: ${price} USD/oz
@@ -14,7 +15,7 @@ Analisa XAUUSD:
 - Risk/Reward: ${rrStrategy}
 - Mode: ${mode}
 
-Buat output dalam JSON dengan format:
+Buat output **valid JSON** dengan format:
 {
   "buy_probability": 0-100,
   "sell_probability": 0-100,
@@ -23,7 +24,7 @@ Buat output dalam JSON dengan format:
   "note": "string"
 }
 
-Jawaban harus **hanya JSON**, jangan teks lain.
+Jawaban harus **hanya JSON**, jangan sertakan teks lain.
 `;
 
   try {
@@ -44,9 +45,14 @@ Jawaban harus **hanya JSON**, jangan teks lain.
     const text = data.choices?.[0]?.message?.content || "{}";
 
     let parsed;
-    try { parsed = JSON.parse(text); } catch { parsed = { ai_output: text }; }
+    try { 
+      parsed = JSON.parse(text); 
+    } catch(e) { 
+      parsed = { ai_output: text, error: "JSON parse failed" }; 
+    }
 
     res.status(200).json({ generated_at: new Date().toISOString(), input: req.body, result: parsed });
+
   } catch(err) {
     res.status(500).json({ error: err.message });
   }
