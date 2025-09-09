@@ -1,51 +1,28 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<title>XAUUSD Probabilitas AI</title>
-<style>
-body { font-family: Arial; padding: 20px; background:#f0f2f5; }
-textarea, input { width: 100%; padding: 8px; margin-top: 5px; }
-button { margin-top: 10px; padding: 10px; width: 100%; cursor: pointer; }
-pre { background: #fff; padding: 10px; border-radius: 6px; white-space: pre-wrap; border:1px solid #ccc; }
-</style>
-</head>
-<body>
-<h2>XAUUSD Probabilitas AI (Vercel)</h2>
+export default async function handler(req, res) {
+  if(req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-<label>Prompt</label>
-<input id="prompt" value="Analisa XAUUSD hari ini.">
+  const OPENAI_KEY = process.env.OPENAI_KEY;
+  if(!OPENAI_KEY) return res.status(500).json({ error: "OPENAI_KEY not set" });
 
-<button id="btnGen">🚀 Generate Probabilitas</button>
-
-<h3>Hasil</h3>
-<div id="output"><i>Belum ada hasil...</i></div>
-
-<script>
-document.getElementById("btnGen").addEventListener("click", async () => {
-  const prompt = document.getElementById("prompt").value.trim();
-  const outputDiv = document.getElementById("output");
-  outputDiv.innerHTML = "<p>⏳ Memproses...</p>";
+  const { prompt } = req.body;
+  if(!prompt) return res.status(400).json({ error: "No prompt provided" });
 
   try {
-    const res = await fetch("/api/ai", {
-      method: "POST",                   // 🔹 Pastikan POST
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 200
+      })
     });
-
-    if(!res.ok){
-      const err = await res.json();
-      outputDiv.innerHTML = `<p style="color:red;">Error: ${err.error || res.statusText}</p>`;
-      return;
-    }
-
-    const data = await res.json();
-    outputDiv.innerHTML = data.text ? `<pre>${data.text}</pre>` : `<p style="color:red;">No result</p>`;
+    const data = await r.json();
+    res.status(200).json(data);
   } catch(err) {
-    outputDiv.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+    res.status(500).json({ error: err.message });
   }
-});
-</script>
-</body>
-</html>
+}
