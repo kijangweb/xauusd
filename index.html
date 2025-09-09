@@ -7,7 +7,7 @@
 body{font-family:sans-serif; background:#071022; color:#e6eef8; padding:20px;}
 input, select, button{padding:6px; margin:4px; border-radius:4px;}
 pre{background:#031223; padding:12px; border-radius:8px; overflow:auto;}
-.highlight{color:#2dd4bf;font-weight:700;}
+.high{color:#2dd4bf; font-weight:700;}
 </style>
 </head>
 <body>
@@ -58,11 +58,17 @@ document.getElementById("gen").addEventListener("click", async () => {
     });
 
     const data = await res.json();
+    const result = data.result;
 
-    if(data.result.ai_output) {
-      output.textContent = data.result.ai_output;
+    if(result.ai_output) {
+      output.textContent = result.ai_output + (result.error ? `\n⚠️ ${result.error}` : "");
     } else {
-      output.textContent = JSON.stringify(data.result, null, 2);
+      // highlight probabilitas tinggi
+      const bp = result.buy_probability || 0;
+      const sp = result.sell_probability || 0;
+      output.innerHTML = JSON.stringify(result, null, 2)
+        .replace(`"buy_probability": ${bp}`, `"buy_probability": <span class="high">${bp}</span>`)
+        .replace(`"sell_probability": ${sp}`, `"sell_probability": <span class="high">${sp}</span>`);
     }
 
   } catch(err) {
