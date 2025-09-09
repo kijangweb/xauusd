@@ -1,39 +1,23 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<title>Test Gemini API Key</title>
-<style>
-body { font-family: Arial; padding: 20px; background:#f0f2f5; }
-button { padding: 10px; cursor: pointer; margin-top: 10px; width: 100%; }
-pre { background:#fff; padding:10px; border-radius:6px; white-space: pre-wrap; border:1px solid #ccc; }
-</style>
-</head>
-<body>
-<h2>Test Gemini API Key</h2>
-
-<button id="btnTest">✅ Cek API Key</button>
-
-<h3>Hasil</h3>
-<div id="output"><i>Belum ada hasil...</i></div>
+<button id="btnTest">Cek AI</button>
+<pre id="output">Belum ada hasil...</pre>
 
 <script>
 document.getElementById("btnTest").addEventListener("click", async () => {
-  const outputDiv = document.getElementById("output");
-  outputDiv.innerHTML = "⏳ Memproses...";
+  const output = document.getElementById("output");
+  output.textContent = "⏳ Memproses...";
+
+  const prompt = "Analisa XAUUSD hari ini, beri probabilitas Buy/Sell";
 
   try {
-    const res = await fetch("/api/checkKey", {
+    const res = await fetch("/api/ai", {
       method: "POST",
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
     });
-
     const data = await res.json();
-    outputDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    output.textContent = JSON.stringify(data, null, 2);
   } catch(err) {
-    outputDiv.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+    output.textContent = `Error: ${err.message}`;
   }
 });
 </script>
-</body>
-</html>
