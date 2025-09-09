@@ -1,59 +1,46 @@
-export default async function handler(req, res) {
-  if(req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+// AI Test Script — XAUUSD Analyzer
+const priceInput = document.querySelector("#price");
+const volInput = document.querySelector("#vol");
+const rrInput = document.querySelector("#rrStrategy");
+const modeInput = document.querySelector("#mode");
+const output = document.querySelector("#output"); // pastikan ada elemen <pre id="output"></pre>
+const genBtn = document.querySelector("#gen");
 
-  const OPENAI_KEY = process.env.OPENAI_KEY;
-  if(!OPENAI_KEY) return res.status(500).json({ error: "OPENAI_KEY not set" });
+genBtn.addEventListener("click", async () => {
+  const price = parseFloat(priceInput.value) || 0;
+  const volatility = parseFloat(volInput.value) || 30;
+  const rrStrategy = rrInput.value || "default";
+  const mode = modeInput.value || "limit";
 
-  const { price, volatility, rrStrategy, mode } = req.body;
-  if(!price) return res.status(400).json({ error: "Price required" });
-
-  // Prompt ketat supaya AI selalu mengembalikan JSON
-  const prompt = `
-Analisa XAUUSD:
-- Harga Spot: ${price} USD/oz
-- Volatilitas: ${volatility}
-- Risk/Reward: ${rrStrategy}
-- Mode: ${mode}
-
-Buat output **valid JSON** dengan format:
-{
-  "buy_probability": 0-100,
-  "sell_probability": 0-100,
-  "buy_zone": {"entry": 0, "stop": 0, "target": 0},
-  "sell_zone": {"entry": 0, "stop": 0, "target": 0},
-  "note": "string"
-}
-
-Jawaban harus **hanya JSON**, jangan sertakan teks lain.
-`;
+  output.textContent = "⏳ Memproses AI...";
 
   try {
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    const res = await fetch("/api/ai", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 250
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ price, volatility, rrStrategy, mode })
     });
 
-    const data = await r.json();
-    const text = data.choices?.[0]?.message?.content || "{}";
+    const data = await res.json();
+    const result = data.result;
 
-    let parsed;
-    try { 
-      parsed = JSON.parse(text); 
-    } catch(e) { 
-      parsed = { ai_output: text, error: "JSON parse failed" }; 
+    if(result.ai_output) {
+      // fallback kalau JSON parse gagal
+      output.textContent = result.ai_output + (result.error ? `\n⚠️ ${result.error}` : "");
+      return;
     }
 
-    res.status(200).json({ generated_at: new Date().toISOString(), input: req.body, result: parsed });
+    // highlight probabilitas tinggi >55%
+    const buyProb = result.buy_probability || 0;
+    const sellProb = result.sell_probability || 0;
+
+    let html = JSON.stringify(result, null, 2)
+      .replace(`"buy_probability": ${buyProb}`, `"buy_probability": <span style="color:#2dd4bf;font-weight:700;">${buyProb}</span>`)
+      .replace(`"sell_probability": ${sellProb}`, `"sell_probability": <span style="color:#fb7185;font-weight:700;">${sellProb}</span>`);
+
+    output.innerHTML = html;
 
   } catch(err) {
-    res.status(500).json({ error: err.message });
+    output.textContent = `Error: ${err.message}`;
   }
-}
+});
