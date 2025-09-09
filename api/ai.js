@@ -2,12 +2,15 @@ import fetch from "node-fetch";
 
 const API_KEYS = [
   process.env.GEMINI_KEY_1,
-  process.env.GEMINI_KEY_2
+  process.env.GEMINI_KEY_2,
+  process.env.GEMINI_KEY_3
 ];
 
 let keyIndex = 0;
 
 export default async function handler(req, res) {
+  if(req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
   const { prompt } = req.body;
   if(!prompt) return res.status(400).json({ error: "Prompt diperlukan" });
 
@@ -31,6 +34,7 @@ export default async function handler(req, res) {
           })
         }
       );
+
       const data = await r.json();
 
       if(data.candidates && data.candidates[0]?.content?.parts[0]?.text){
@@ -38,14 +42,14 @@ export default async function handler(req, res) {
         break;
       }
     } catch(err){
-      console.error(err);
+      console.error("Error key:", key, err.message);
     }
 
-    // coba key berikutnya
+    // rotate key
     keyIndex = (keyIndex + 1) % API_KEYS.length;
     attempts++;
   }
 
-  if(result) res.json({ text: result });
+  if(result) res.status(200).json({ text: result });
   else res.status(500).json({ error: "Semua API key gagal" });
 }
