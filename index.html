@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>XAUUSD Probabilitas AI</title>
+<style>
+body { font-family: Arial; padding: 20px; }
+textarea, input { width: 100%; padding: 8px; margin-top: 5px; }
+button { margin-top: 10px; padding: 10px; width: 100%; cursor: pointer; }
+pre { background: #f4f4f4; padding: 10px; border-radius: 6px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h2>XAUUSD Probabilitas AI (Vercel)</h2>
+
+<label>Prompt</label>
+<input id="prompt" value="Analisa XAUUSD hari ini.">
+
+<button id="btnGen">🚀 Generate Probabilitas</button>
+
+<h3>Hasil</h3>
+<div id="output"><i>Belum ada hasil...</i></div>
+
+<script>
+document.getElementById("btnGen").addEventListener("click", async () => {
+  const prompt = document.getElementById("prompt").value.trim();
+  const outputDiv = document.getElementById("output");
+  outputDiv.innerHTML = "<p>⏳ Memproses...</p>";
+
+  try {
+    const res = await fetch("/api/ai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+    if(data.text) outputDiv.innerHTML = `<pre>${data.text}</pre>`;
+    else outputDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+  } catch(err) {
+    outputDiv.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+  }
+});
+</script>
+</body>
+</html>
