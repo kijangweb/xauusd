@@ -2,41 +2,34 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>XAUUSD Probabilitas AI</title>
+<title>Test Gemini API Key</title>
 <style>
-body { font-family: Arial; padding: 20px; }
-textarea, input { width: 100%; padding: 8px; margin-top: 5px; }
-button { margin-top: 10px; padding: 10px; width: 100%; cursor: pointer; }
-pre { background: #f4f4f4; padding: 10px; border-radius: 6px; white-space: pre-wrap; }
+body { font-family: Arial; padding: 20px; background:#f0f2f5; }
+button { padding: 10px; cursor: pointer; margin-top: 10px; width: 100%; }
+pre { background:#fff; padding:10px; border-radius:6px; white-space: pre-wrap; border:1px solid #ccc; }
 </style>
 </head>
 <body>
-<h2>XAUUSD Probabilitas AI (Vercel)</h2>
+<h2>Test Gemini API Key</h2>
 
-<label>Prompt</label>
-<input id="prompt" value="Analisa XAUUSD hari ini.">
-
-<button id="btnGen">🚀 Generate Probabilitas</button>
+<button id="btnTest">✅ Cek API Key</button>
 
 <h3>Hasil</h3>
 <div id="output"><i>Belum ada hasil...</i></div>
 
 <script>
-document.getElementById("btnGen").addEventListener("click", async () => {
-  const prompt = document.getElementById("prompt").value.trim();
+document.getElementById("btnTest").addEventListener("click", async () => {
   const outputDiv = document.getElementById("output");
-  outputDiv.innerHTML = "<p>⏳ Memproses...</p>";
+  outputDiv.innerHTML = "⏳ Memproses...";
 
   try {
-    const res = await fetch("/api/ai", {
+    const res = await fetch("/api/checkKey", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
+      headers: { "Content-Type": "application/json" }
     });
 
     const data = await res.json();
-    if(data.text) outputDiv.innerHTML = `<pre>${data.text}</pre>`;
-    else outputDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+    outputDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
   } catch(err) {
     outputDiv.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
   }
