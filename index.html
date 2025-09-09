@@ -1,18 +1,59 @@
-<button id="btnTest">Cek AI</button>
-<pre id="output">Belum ada hasil...</pre>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>XAUUSD Analyzer AI</title>
+<style>
+body{font-family:sans-serif; background:#071022; color:#e6eef8; padding:20px;}
+input, select, button{padding:6px; margin:4px; border-radius:4px;}
+pre{background:#031223; padding:12px; border-radius:8px; overflow:auto;}
+</style>
+</head>
+<body>
+
+<h1>XAUUSD Analyzer AI</h1>
+
+<label>Harga Spot (USD/oz)</label>
+<input type="number" id="price" value="3620.00">
+
+<label>Volatilitas</label>
+<input type="number" id="vol" value="30">
+
+<label>Risk/Reward Strategy</label>
+<select id="rrStrategy">
+  <option value="default" selected>Default</option>
+  <option value="ideal">Ideal</option>
+  <option value="safe">Safe</option>
+</select>
+
+<label>Mode</label>
+<select id="mode">
+  <option value="limit" selected>Limit</option>
+  <option value="stop">Stop</option>
+</select>
+
+<button id="gen">Generate AI Analysis</button>
+
+<h3>Hasil:</h3>
+<pre id="output">{}</pre>
 
 <script>
-document.getElementById("btnTest").addEventListener("click", async () => {
+document.getElementById("gen").addEventListener("click", async () => {
   const output = document.getElementById("output");
   output.textContent = "⏳ Memproses...";
 
-  const prompt = "Analisa XAUUSD hari ini, beri probabilitas Buy/Sell";
+  const payload = {
+    price: parseFloat(document.getElementById("price").value),
+    volatility: parseFloat(document.getElementById("vol").value),
+    rrStrategy: document.getElementById("rrStrategy").value,
+    mode: document.getElementById("mode").value
+  };
 
   try {
     const res = await fetch("/api/ai", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt })
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     output.textContent = JSON.stringify(data, null, 2);
@@ -21,3 +62,6 @@ document.getElementById("btnTest").addEventListener("click", async () => {
   }
 });
 </script>
+
+</body>
+</html>
