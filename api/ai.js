@@ -1,55 +1,51 @@
-import fetch from "node-fetch";
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>XAUUSD Probabilitas AI</title>
+<style>
+body { font-family: Arial; padding: 20px; background:#f0f2f5; }
+textarea, input { width: 100%; padding: 8px; margin-top: 5px; }
+button { margin-top: 10px; padding: 10px; width: 100%; cursor: pointer; }
+pre { background: #fff; padding: 10px; border-radius: 6px; white-space: pre-wrap; border:1px solid #ccc; }
+</style>
+</head>
+<body>
+<h2>XAUUSD Probabilitas AI (Vercel)</h2>
 
-const API_KEYS = [
-  process.env.GEMINI_KEY_1,
-  process.env.GEMINI_KEY_2,
-  process.env.GEMINI_KEY_3
-];
+<label>Prompt</label>
+<input id="prompt" value="Analisa XAUUSD hari ini.">
 
-let keyIndex = 0;
+<button id="btnGen">🚀 Generate Probabilitas</button>
 
-export default async function handler(req, res) {
-  if(req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+<h3>Hasil</h3>
+<div id="output"><i>Belum ada hasil...</i></div>
 
-  const { prompt } = req.body;
-  if(!prompt) return res.status(400).json({ error: "Prompt diperlukan" });
+<script>
+document.getElementById("btnGen").addEventListener("click", async () => {
+  const prompt = document.getElementById("prompt").value.trim();
+  const outputDiv = document.getElementById("output");
+  outputDiv.innerHTML = "<p>⏳ Memproses...</p>";
 
-  let attempts = 0;
-  let result = null;
+  try {
+    const res = await fetch("/api/ai", {
+      method: "POST",                   // 🔹 Pastikan POST
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt })
+    });
 
-  while(attempts < API_KEYS.length){
-    const key = API_KEYS[keyIndex];
-
-    try {
-      const r = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${key}`
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
-        }
-      );
-
-      const data = await r.json();
-
-      if(data.candidates && data.candidates[0]?.content?.parts[0]?.text){
-        result = data.candidates[0].content.parts[0].text;
-        break;
-      }
-    } catch(err){
-      console.error("Error key:", key, err.message);
+    if(!res.ok){
+      const err = await res.json();
+      outputDiv.innerHTML = `<p style="color:red;">Error: ${err.error || res.statusText}</p>`;
+      return;
     }
 
-    // rotate key
-    keyIndex = (keyIndex + 1) % API_KEYS.length;
-    attempts++;
+    const data = await res.json();
+    outputDiv.innerHTML = data.text ? `<pre>${data.text}</pre>` : `<p style="color:red;">No result</p>`;
+  } catch(err) {
+    outputDiv.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
   }
-
-  if(result) res.status(200).json({ text: result });
-  else res.status(500).json({ error: "Semua API key gagal" });
-}
+});
+</script>
+</body>
+</html>
